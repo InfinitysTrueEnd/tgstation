@@ -41,7 +41,7 @@
 		if(M.reagents)
 			var/trans = 0
 			if(!infinite)
-				trans = reagents.trans_to(M, amount_per_transfer_from_this)
+				trans = reagents.trans_to(M, amount_per_transfer_from_this, transfered_by = user)
 			else
 				trans = reagents.copy_to(M, amount_per_transfer_from_this)
 
@@ -64,9 +64,9 @@
 	list_reagents = list("epinephrine" = 30, "omnizine" = 30, "leporazine" = 15, "atropine" = 15)
 
 /obj/item/reagent_containers/hypospray/combat/nanites
-	desc = "A modified air-needle autoinjector for use in combat situations. Prefilled with expensive medical nanites for rapid healing."
+	desc = "A modified air-needle autoinjector for use in combat situations. Prefilled with experimental medical compounds for rapid healing."
 	volume = 100
-	list_reagents = list("nanites" = 80, "synaptizine" = 20)
+	list_reagents = list("quantum_heal" = 80, "synaptizine" = 20)
 
 /obj/item/reagent_containers/hypospray/magillitis
 	name = "experimental autoinjector"
@@ -91,6 +91,7 @@
 	container_type = DRAWABLE
 	flags_1 = null
 	list_reagents = list("epinephrine" = 10)
+	custom_price = 40
 
 /obj/item/reagent_containers/hypospray/medipen/suicide_act(mob/living/carbon/user)
 	user.visible_message("<span class='suicide'>[user] begins to choke on \the [src]! It looks like [user.p_theyre()] trying to commit suicide!</span>")
@@ -158,7 +159,7 @@
 	icon_state = "stimpen"
 	volume = 57
 	amount_per_transfer_from_this = 57
-	list_reagents = list("salbutamol" = 10, "leporazine" = 15, "tricordrazine" = 15, "epinephrine" = 10, "miningnanites" = 2, "omnizine" = 5)
+	list_reagents = list("salbutamol" = 10, "leporazine" = 15, "tricordrazine" = 15, "epinephrine" = 10, "lavaland_extract" = 2, "omnizine" = 5)
 
 /obj/item/reagent_containers/hypospray/medipen/species_mutator
 	name = "species mutator medipen"
@@ -174,3 +175,8 @@
 	volume = 250
 	list_reagents = list("holywater" = 150, "tiresolution" = 50, "dizzysolution" = 50)
 	amount_per_transfer_from_this = 50
+
+/obj/item/reagent_containers/hypospray/medipen/atropine
+	name = "atropine autoinjector"
+	desc = "A rapid way to save a person from a critical injury state!"
+	list_reagents = list("atropine" = 10)

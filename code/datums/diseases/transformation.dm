@@ -61,7 +61,7 @@
 			affected_mob.dropItemToGround(I)
 		var/mob/living/new_mob = new new_form(affected_mob.loc)
 		if(istype(new_mob))
-			if(bantype && jobban_isbanned(affected_mob, bantype))
+			if(bantype && is_banned_from(affected_mob.ckey, bantype))
 				replace_banned_player(new_mob)
 			new_mob.a_intent = INTENT_HARM
 			if(affected_mob.mind)
@@ -80,7 +80,7 @@
 	if(LAZYLEN(candidates))
 		var/mob/dead/observer/C = pick(candidates)
 		to_chat(affected_mob, "Your mob has been taken over by a ghost! Appeal your job ban if you want to avoid this in the future!")
-		message_admins("[key_name_admin(C)] has taken control of ([key_name_admin(affected_mob)]) to replace a jobbaned player.")
+		message_admins("[key_name_admin(C)] has taken control of ([key_name_admin(affected_mob)]) to replace a jobbanned player.")
 		affected_mob.ghostize(0)
 		affected_mob.key = C.key
 	else
@@ -136,7 +136,7 @@
 				affected_mob.confused += 10
 		if(4)
 			if(prob(3))
-				affected_mob.say(pick("Eeek, ook ook!", "Eee-eeek!", "Eeee!", "Ungh, ungh."))
+				affected_mob.say(pick("Eeek, ook ook!", "Eee-eeek!", "Eeee!", "Ungh, ungh."), forced = "jungle fever")
 
 /datum/disease/transformation/jungle_fever/cure()
 	remove_monkey(affected_mob.mind)
@@ -176,13 +176,13 @@
 	switch(stage)
 		if(3)
 			if (prob(8))
-				affected_mob.say(pick("Beep, boop", "beep, beep!", "Boop...bop"))
+				affected_mob.say(pick("Beep, boop", "beep, beep!", "Boop...bop"), forced = "robotic transformation")
 			if (prob(4))
 				to_chat(affected_mob, "<span class='danger'>You feel a stabbing pain in your head.</span>")
 				affected_mob.Unconscious(40)
 		if(4)
 			if (prob(20))
-				affected_mob.say(pick("beep, beep!", "Boop bop boop beep.", "kkkiiiill mmme", "I wwwaaannntt tttoo dddiiieeee..."))
+				affected_mob.say(pick("beep, beep!", "Boop bop boop beep.", "kkkiiiill mmme", "I wwwaaannntt tttoo dddiiieeee..."), forced = "robotic transformation")
 
 
 /datum/disease/transformation/xeno
@@ -212,7 +212,7 @@
 				affected_mob.Unconscious(40)
 		if(4)
 			if (prob(20))
-				affected_mob.say(pick("You look delicious.", "Going to... devour you...", "Hsssshhhhh!"))
+				affected_mob.say(pick("You look delicious.", "Going to... devour you...", "Hsssshhhhh!"), forced = "xenomorph transformation")
 
 
 /datum/disease/transformation/slime
@@ -264,10 +264,10 @@
 	switch(stage)
 		if(3)
 			if (prob(8))
-				affected_mob.say(pick("YAP", "Woof!"))
+				affected_mob.say(pick("YAP", "Woof!"), forced = "corgi transformation")
 		if(4)
 			if (prob(20))
-				affected_mob.say(pick("Bark!", "AUUUUUU"))
+				affected_mob.say(pick("Bark!", "AUUUUUU"), forced = "corgi transformation")
 
 /datum/disease/transformation/morph
 	name = "Gluttony's Blessing"

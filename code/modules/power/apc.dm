@@ -92,7 +92,7 @@
 	var/transfer_in_progress = FALSE //Is there an AI being transferred out of us?
 	var/obj/item/clockwork/integration_cog/integration_cog //Is there a cog siphoning power?
 	var/longtermpower = 10
-	var/auto_name = 0
+	var/auto_name = FALSE
 	var/failure_timer = 0
 	var/force_update = 0
 	var/emergency_lights = FALSE
@@ -108,6 +108,9 @@
 
 /obj/machinery/power/apc/syndicate //general syndicate access
 	req_access = list(ACCESS_SYNDICATE)
+
+/obj/machinery/power/apc/away //general away mission access
+	req_access = list(ACCESS_AWAY_GENERAL)
 
 /obj/machinery/power/apc/highcap/five_k
 	cell_type = /obj/item/stock_parts/cell/upgraded/plus
@@ -159,11 +162,8 @@
 	// this allows the APC to be embedded in a wall, yet still inside an area
 	if (building)
 		setDir(ndir)
-	src.tdir = dir		// to fix Vars bug
+	tdir = dir		// to fix Vars bug
 	setDir(SOUTH)
-
-	if(auto_name)
-		name = "\improper [get_area(src)] APC"
 
 	switch(tdir)
 		if(NORTH)
@@ -178,9 +178,9 @@
 		area = get_area(src)
 		opened = APC_COVER_OPENED
 		operating = FALSE
-		name = "[area.name] APC"
+		name = "\improper [get_area_name(area, TRUE)] APC"
 		stat |= MAINT
-		src.update_icon()
+		update_icon()
 		addtimer(CALLBACK(src, .proc/update), 5)
 
 /obj/machinery/power/apc/Destroy()
@@ -211,7 +211,7 @@
 /obj/machinery/power/apc/proc/make_terminal()
 	// create a terminal object at the same position as original turf loc
 	// wires will attach to this
-	terminal = new/obj/machinery/power/terminal(src.loc)
+	terminal = new/obj/machinery/power/terminal(loc)
 	terminal.setDir(tdir)
 	terminal.master = src
 
@@ -225,16 +225,20 @@
 		cell = new cell_type
 		cell.charge = start_charge * cell.maxcharge / 100 		// (convert percentage to actual value)
 
-	var/area/A = src.loc.loc
+	var/area/A = loc.loc
 
 	//if area isn't specified use current
 	if(areastring)
-		src.area = get_area_instance_from_text(areastring)
-		if(!src.area)
-			src.area = A
-			stack_trace("Bad areastring path for [src], [src.areastring]")
-	else if(isarea(A) && src.areastring == null)
-		src.area = A
+		area = get_area_instance_from_text(areastring)
+		if(!area)
+			area = A
+			stack_trace("Bad areastring path for [src], [areastring]")
+	else if(isarea(A) && areastring == null)
+		area = A
+
+	if(auto_name)
+		name = "\improper [get_area_name(area, TRUE)] APC"
+
 	update_icon()
 
 	make_terminal()
@@ -264,6 +268,11 @@
 
 	if(integration_cog && is_servant_of_ratvar(user))
 		to_chat(user, "<span class='brass'>There is an integration cog installed!</span>")
+
+	to_chat(user, "<span class='notice'>Alt-Click the APC to [ locked ? "unlock" : "lock"] the interface.</span>")
+
+	if(issilicon(user))
+		to_chat(user, "<span class='notice'>Ctrl-Click the APC to switch the breaker [ operating ? "off" : "on"].</span>")
 
 // update the APC icon to show the three base states
 // also add overlays for indicator lights
@@ -300,19 +309,17 @@
 			icon_state = "apc0"
 
 	if(!(update_state & UPSTATE_ALLGOOD))
-		cut_overlays()
+		SSvis_overlays.remove_vis_overlay(src, managed_vis_overlays)
 
 	if(update & 2)
-		cut_overlays()
+		SSvis_overlays.remove_vis_overlay(src, managed_vis_overlays)
 		if(!(stat & (BROKEN|MAINT)) && update_state & UPSTATE_ALLGOOD)
-			var/list/O = list(
-				"apcox-[locked]",
-				"apco3-[charging]")
+			SSvis_overlays.add_vis_overlay(src, icon, "apcox-[locked]", ABOVE_LIGHTING_LAYER, ABOVE_LIGHTING_PLANE, dir)
+			SSvis_overlays.add_vis_overlay(src, icon, "apco3-[charging]", ABOVE_LIGHTING_LAYER, ABOVE_LIGHTING_PLANE, dir)
 			if(operating)
-				O += "apco0-[equipment]"
-				O += "apco1-[lighting]"
-				O += "apco2-[environ]"
-			add_overlay(O)
+				SSvis_overlays.add_vis_overlay(src, icon, "apco0-[equipment]", ABOVE_LIGHTING_LAYER, ABOVE_LIGHTING_PLANE, dir)
+				SSvis_overlays.add_vis_overlay(src, icon, "apco1-[lighting]", ABOVE_LIGHTING_LAYER, ABOVE_LIGHTING_PLANE, dir)
+				SSvis_overlays.add_vis_overlay(src, icon, "apco2-[environ]", ABOVE_LIGHTING_LAYER, ABOVE_LIGHTING_PLANE, dir)
 
 	// And now, separately for cleanness, the lighting changing
 	if(update_state & UPSTATE_ALLGOOD)
@@ -472,6 +479,8 @@
 			return
 
 /obj/machinery/power/apc/screwdriver_act(mob/living/user, obj/item/W)
+	if(..())
+		return TRUE
 	. = TRUE
 	if(opened)
 		if(cell)
@@ -716,8 +725,16 @@
 			locked = !locked
 			to_chat(user, "<span class='notice'>You [ locked ? "lock" : "unlock"] the APC interface.</span>")
 			update_icon()
+			updateUsrDialog()
 		else
 			to_chat(user, "<span class='warning'>Access denied.</span>")
+
+/obj/machinery/power/apc/proc/toggle_nightshift_lights(mob/living/user)
+	if(last_nightshift_switch > world.time - 100) //~10 seconds between each toggle to prevent spamming
+		to_chat(usr, "<span class='warning'>[src]'s night lighting circuit breaker is still cycling!</span>")
+		return
+	last_nightshift_switch = world.time
+	set_nightshift(!nightshift_lights)
 
 /obj/machinery/power/apc/run_obj_armor(damage_amount, damage_type, damage_flag = 0, attack_dir)
 	if(damage_flag == "melee" && damage_amount < 10 && (!(stat & BROKEN) || malfai))
@@ -909,14 +926,10 @@
 			coverlocked = !coverlocked
 			. = TRUE
 		if("breaker")
-			toggle_breaker()
+			toggle_breaker(usr)
 			. = TRUE
 		if("toggle_nightshift")
-			if(last_nightshift_switch > world.time + 100)			//don't spam..
-				to_chat(usr, "<span class='warning'>[src]'s night lighting circuit breaker is still cycling!</span>")
-				return
-			last_nightshift_switch = world.time
-			set_nightshift(!nightshift_lights)
+			toggle_nightshift_lights()
 			. = TRUE
 		if("charge")
 			chargemode = !chargemode
@@ -964,10 +977,12 @@
 				CHECK_TICK
 	return 1
 
-/obj/machinery/power/apc/proc/toggle_breaker()
+/obj/machinery/power/apc/proc/toggle_breaker(mob/user)
 	if(!is_operational() || failure_timer)
 		return
 	operating = !operating
+	add_hiddenprint(user)
+	log_combat(user, src, "turned [operating ? "on" : "off"]")
 	update()
 	update_icon()
 
@@ -1096,7 +1111,7 @@
 
 /obj/machinery/power/apc/add_load(amount)
 	if(terminal && terminal.powernet)
-		terminal.powernet.load += amount
+		terminal.add_load(amount)
 
 /obj/machinery/power/apc/avail()
 	if(terminal)
@@ -1418,4 +1433,5 @@
 /obj/item/electronics/apc
 	name = "power control module"
 	icon_state = "power_mod"
+	custom_price = 5
 	desc = "Heavy-duty switching circuits for power control."

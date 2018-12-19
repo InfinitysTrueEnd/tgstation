@@ -227,7 +227,8 @@ GLOBAL_LIST_EMPTY(asset_datums)
 	var/fname = "data/spritesheets/[res_name]"
 	fdel(fname)
 	text2file(generate_css(), fname)
-	register_asset(res_name, file(fname))
+	register_asset(res_name, fcopy_rsc(fname))
+	fdel(fname)
 
 	for(var/size_id in sizes)
 		var/size = sizes[size_id]
@@ -254,6 +255,7 @@ GLOBAL_LIST_EMPTY(asset_datums)
 		if(length(error))
 			stack_trace("Failed to strip [name]_[size_id].png: [error]")
 		size[SPRSZ_STRIPPED] = icon(fname)
+		fdel(fname)
 
 /datum/asset/spritesheet/proc/generate_css()
 	var/list/out = list()
@@ -465,6 +467,7 @@ GLOBAL_LIST_EMPTY(asset_datums)
 		"stamp-law" = 'icons/stamp_icons/large_stamp-law.png'
 	)
 
+
 /datum/asset/simple/IRV
 	assets = list(
 		"jquery-ui.custom-core-widgit-mouse-sortable-min.js" = 'html/IRV/jquery-ui.custom-core-widgit-mouse-sortable-min.js',
@@ -549,6 +552,40 @@ GLOBAL_LIST_EMPTY(asset_datums)
 		"padlock.png"	= 'html/padlock.png'
 	)
 
+/datum/asset/simple/notes
+	assets = list(
+		"high_button.png" = 'html/high_button.png',
+		"medium_button.png" = 'html/medium_button.png',
+		"minor_button.png" = 'html/minor_button.png',
+		"none_button.png" = 'html/none_button.png',
+	)
+
+/datum/asset/simple/pills
+	assets = list(
+		"pill1" = 'icons/UI_Icons/Pills/pill1.png',
+		"pill2" = 'icons/UI_Icons/Pills/pill2.png',
+		"pill3" = 'icons/UI_Icons/Pills/pill3.png',
+		"pill4" = 'icons/UI_Icons/Pills/pill4.png',
+		"pill5" = 'icons/UI_Icons/Pills/pill5.png',
+		"pill6" = 'icons/UI_Icons/Pills/pill6.png',
+		"pill7" = 'icons/UI_Icons/Pills/pill7.png',
+		"pill8" = 'icons/UI_Icons/Pills/pill8.png',
+		"pill9" = 'icons/UI_Icons/Pills/pill9.png',
+		"pill10" = 'icons/UI_Icons/Pills/pill10.png',
+		"pill11" = 'icons/UI_Icons/Pills/pill11.png',
+		"pill12" = 'icons/UI_Icons/Pills/pill12.png',
+		"pill13" = 'icons/UI_Icons/Pills/pill13.png',
+		"pill14" = 'icons/UI_Icons/Pills/pill14.png',
+		"pill15" = 'icons/UI_Icons/Pills/pill15.png',
+		"pill16" = 'icons/UI_Icons/Pills/pill16.png',
+		"pill17" = 'icons/UI_Icons/Pills/pill17.png',
+		"pill18" = 'icons/UI_Icons/Pills/pill18.png',
+		"pill19" = 'icons/UI_Icons/Pills/pill19.png',
+		"pill20" = 'icons/UI_Icons/Pills/pill20.png',
+		"pill21" = 'icons/UI_Icons/Pills/pill21.png',
+		"pill22" = 'icons/UI_Icons/Pills/pill22.png',
+	)
+
 //this exists purely to avoid meta by pre-loading all language icons.
 /datum/asset/language/register()
 	for(var/path in typesof(/datum/language))
@@ -622,3 +659,10 @@ GLOBAL_LIST_EMPTY(asset_datums)
 
 		Insert(initial(D.id), I)
 	return ..()
+
+/datum/asset/simple/genetics
+	assets = list(
+		"dna_discovered.png"	= 'html/dna_discovered.png',
+		"dna_undiscovered.png"	= 'html/dna_undiscovered.png',
+		"dna_extra.png" 		= 'html/dna_extra.png'
+)

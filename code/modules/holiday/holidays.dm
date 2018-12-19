@@ -257,7 +257,7 @@
 	name = "Beer Day"
 
 /datum/holiday/beer/shouldCelebrate(dd, mm, yy, ww, ddd)
-	if(mm == 8 && ddd == FRIDAY) //First Friday in August
+	if(mm == 8 && ddd == FRIDAY && ww == 1) //First Friday in August
 		return TRUE
 	return FALSE
 
@@ -460,6 +460,11 @@ Since Ramadan is an entire month that lasts 29.5 days on average, the start and 
 
 /datum/holiday/xmas/celebrate()
 	SSticker.OnRoundstart(CALLBACK(src, .proc/roundstart_celebrate))
+	GLOB.maintenance_loot += list(
+		/obj/item/toy/xmas_cracker = 3,
+		/obj/item/clothing/head/santa = 1,
+		/obj/item/a_gift/anything = 1
+	)
 
 /datum/holiday/xmas/proc/roundstart_celebrate()
 	for(var/obj/machinery/computer/security/telescreen/entertainment/Monitor in GLOB.machines)
